@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+    <title>Error: {{.ErrorMessageCode}}</title>
+</head>
+
+<body>
+    <div class="pageContainer">
+
+        <header>
+            <h1>Ascii-Art-Web</h1>
+        </header>
+
+        <div class="error-box">
+            <h2>Error: {{.ErrorMessageCode}}</h2>
+            <h3>{{.ErrorMessage}}</h3>
+        </div>
+
+        <form action="/" method="get">
+            <div class="btn-group">
+                <button name="btn" class="btn danger" type="submit" value="submit">Try Again</button>
+            </div>
+        </form>
+
+    </div>
+</body>
+
+</html>

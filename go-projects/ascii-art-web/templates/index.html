@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ascii Art Web</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="pageContainer">
+
+        <header>
+            <h1>Ascii-Art-Web</h1>
+        </header>
+
+        <form action="/" method="post">
+            <div class="form-group">
+                <label for="text">Enter your text:</label>
+                <textarea name="text" id="text" required>{{.Text}}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="banner">Choose ASCII Art style:</label>
+                <select name="banner" id="banner">
+                    <option value="standard" {{if eq .Banner "standard" }}selected{{end}}>Standard</option>
+                    <option value="shadow" {{if eq .Banner "shadow" }}selected{{end}}>Shadow</option>
+                    <option value="thinkertoy" {{if eq .Banner "thinkertoy" }}selected{{end}}>Thinker Toy</option>
+                </select>
+            </div>
+
+            <div class="btn-group">
+                <button type="submit" class="btn primary">Generate</button>
+                <button type="reset" class="btn secondary" onclick="clearOutput()">Reset</button>
+            </div>
+        </form>
+
+        {{if .Error}}
+        <div class="error-box">
+            <strong>Error:</strong> {{.ErrorMessage}}
+        </div>
+        {{end}}
+
+        {{if .Art}}
+        <div class="output-section">
+            <h3>ASCII Art Output:</h3>
+            <textarea class="output-box" id="artOutput" readonly>{{.Art}}</textarea>
+            <div class="btn-group">
+                <a class="btn export" id="exportBtn" href="#">Download as .txt</a>
+            </div>
+        </div>
+        {{end}}
+
+    </div>
+
+    <script>
+        function clearOutput() {
+            const artArea = document.querySelector('.output-section');
+            if (artArea) artArea.remove();
+        }
+
+        const exportBtn = document.getElementById('exportBtn');
+        if (exportBtn) {
+            const art = document.getElementById('artOutput').value;
+            exportBtn.href = '/export?art=' + encodeURIComponent(art);
+        }
+    </script>
+</body>
+
+</html>
