@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{.Artist.Name}} – Artist Info</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<body>
+    <a href="{{.BackURL}}" class="back-link">← Back to Home</a>
+
+    <div class="artist-container">
+        <h1>{{.Artist.Name}}</h1>
+        <img src="{{.Artist.Image}}" alt="{{.Artist.Name}}" />
+        <p><strong>Members:</strong> {{.MemberDisplay}}</p>
+        <p><strong>Creation Date:</strong> {{.Artist.CreationDate}}</p>
+        <p><strong>First Album:</strong> {{.Artist.FirstAlbum}}</p>
+    </div>
+
+    <h2>Concert Locations Map</h2>
+    <div id="map-container">
+        <div id="map"></div>
+        <div id="map-loading">Loading concert locations...</div>
+    </div>
+
+    <h2>Concerts by City</h2>
+    {{if .Concerts}}
+    <div class="concerts">
+        {{range $city, $dates := .Concerts}}
+        <div class="concert-city">
+            <h3>{{$city}}</h3>
+            {{range $dates}}
+            <div class="concert-date">{{.}}</div>
+            {{end}}
+        </div>
+        {{end}}
+    </div>
+    {{else}}
+    <p style="text-align:center;">No upcoming concerts available.</p>
+    {{end}}
+
+    <h2>All Concert Dates</h2>
+    {{if .Dates}}
+    <ul style="text-align:center; padding:0; list-style-type:none;">
+        {{range .Dates}}
+        <li style="margin:5px 0;">🎵 {{.}}</li>
+        {{end}}
+    </ul>
+    {{else}}
+    <p style="text-align:center;">No concert dates listed.</p>
+    {{end}}
+
+    <script>
+        const map = L.map('map').setView([20, 0], 2);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        const locations = {{.Locations }};
+        const concerts = {{.Concerts }};
+
+        const loadingDiv = document.getElementById('map-loading');
+        let locationsProcessed = 0;
+        let totalLocations = locations ? locations.length : 0;
+
+        if (totalLocations === 0) {
+            loadingDiv.textContent = 'No concert locations to display.';
+        } else {
+            const markers = [];
+
+            locations.forEach(async (location) => {
+                try {
+                    const response = await fetch(`/api/geocode?location=${encodeURIComponent(location)}`);
+                    const data = await response.json();
+
+                    if (data.success) {
+                        const marker = L.marker([data.coordinate.lat, data.coordinate.lng]).addTo(map);
+                        markers.push(marker);
+
+                        const dates = concerts[location] || [];
+                        let popupContent = `<div class="map-popup">
+                            <h4>${data.location}</h4>
+                            <p><strong>Concert Dates:</strong></p>
+                            <ul>`;
+
+                        dates.forEach(date => {
+                            popupContent += `<li>${date}</li>`;
+                        });
+
+                        popupContent += `</ul></div>`;
+                        marker.bindPopup(popupContent);
+                    } else {
+                        console.warn(`Failed to geocode: ${location}`, data.error);
+                    }
+                } catch (error) {
+                    console.error(`Error geocoding ${location}:`, error);
+                } finally {
+                    locationsProcessed++;
+                    if (locationsProcessed === totalLocations) {
+                        loadingDiv.style.display = 'none';
+                        if (markers.length > 0) {
+                            const group = L.featureGroup(markers);
+                            map.fitBounds(group.getBounds().pad(0.1));
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+
+</body>
+
+</html>

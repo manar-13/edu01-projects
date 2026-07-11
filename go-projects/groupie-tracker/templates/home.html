@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Groupie Tracker</title>
+    <link rel="stylesheet" href="/static/style.css" />
+</head>
+
+<body>
+    <h1>Groupie Tracker</h1>
+
+    <form method="get" action="/" style="text-align:center; margin: 0 auto 24px; max-width: 980px;">
+
+        <!-- Search bar with suggestions -->
+        <div style="position:relative; display:inline-block; width:60%; max-width:520px;">
+            <input id="q" type="text" name="q" placeholder="Search artist, member, location..." value="{{.Query}}"
+                autocomplete="off" style="padding:8px 10px; width:100%;" oninput="fetchSuggestions(this.value)"
+                onkeydown="handleKey(event)">
+            <ul id="suggestions" style="
+        display:none;
+        position:absolute;
+        top:100%;
+        left:0;
+        right:0;
+        background:#1e1e1e;
+        border:1px solid #444;
+        border-radius:0 0 6px 6px;
+        list-style:none;
+        margin:0;
+        padding:0;
+        z-index:100;
+        max-height:260px;
+        overflow-y:auto;
+      "></ul>
+        </div>
+
+        <div style="margin-top:18px;"></div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:18px; justify-content:center;">
+
+            <!-- Creation Year -->
+            <div class="range-box">
+                <strong>Creation Year</strong><br>
+                <label for="creationMinNumber" style="display:block; margin-top:6px;">Min</label>
+                <input type="number" id="creationMinNumber" name="creationMin" min="{{.CreationMinBound}}"
+                    max="{{.CreationMaxBound}}" step="1"
+                    value="{{if .CreationMin}}{{.CreationMin}}{{else}}{{.CreationMinBound}}{{end}}"
+                    class="filter-number">
+                <input type="range" id="creationMinRange" name="creationMin" min="{{.CreationMinBound}}"
+                    max="{{.CreationMaxBound}}" step="1"
+                    value="{{if .CreationMin}}{{.CreationMin}}{{else}}{{.CreationMinBound}}{{end}}"
+                    class="filter-range">
+
+                <label for="creationMaxNumber" style="display:block; margin-top:10px;">Max</label>
+                <input type="number" id="creationMaxNumber" name="creationMax" min="{{.CreationMinBound}}"
+                    max="{{.CreationMaxBound}}" step="1"
+                    value="{{if .CreationMax}}{{.CreationMax}}{{else}}{{.CreationMaxBound}}{{end}}"
+                    class="filter-number">
+                <input type="range" id="creationMaxRange" name="creationMax" min="{{.CreationMinBound}}"
+                    max="{{.CreationMaxBound}}" step="1"
+                    value="{{if .CreationMax}}{{.CreationMax}}{{else}}{{.CreationMaxBound}}{{end}}"
+                    class="filter-range">
+
+                <div class="hint">Range: {{.CreationMinBound}}–{{.CreationMaxBound}}</div>
+            </div>
+
+            <!-- First Album Year -->
+            <div class="range-box">
+                <strong>First Album Year</strong><br>
+                <label for="albumMinNumber" style="display:block; margin-top:6px;">Min</label>
+                <input type="number" id="albumMinNumber" name="albumMin" min="{{.AlbumMinBound}}"
+                    max="{{.AlbumMaxBound}}" step="1"
+                    value="{{if .AlbumMin}}{{.AlbumMin}}{{else}}{{.AlbumMinBound}}{{end}}" class="filter-number">
+                <input type="range" id="albumMinRange" name="albumMin" min="{{.AlbumMinBound}}" max="{{.AlbumMaxBound}}"
+                    step="1" value="{{if .AlbumMin}}{{.AlbumMin}}{{else}}{{.AlbumMinBound}}{{end}}"
+                    class="filter-range">
+
+                <label for="albumMaxNumber" style="display:block; margin-top:10px;">Max</label>
+                <input type="number" id="albumMaxNumber" name="albumMax" min="{{.AlbumMinBound}}"
+                    max="{{.AlbumMaxBound}}" step="1"
+                    value="{{if .AlbumMax}}{{.AlbumMax}}{{else}}{{.AlbumMaxBound}}{{end}}" class="filter-number">
+                <input type="range" id="albumMaxRange" name="albumMax" min="{{.AlbumMinBound}}" max="{{.AlbumMaxBound}}"
+                    step="1" value="{{if .AlbumMax}}{{.AlbumMax}}{{else}}{{.AlbumMaxBound}}{{end}}"
+                    class="filter-range">
+
+                <div class="hint">Range: {{.AlbumMinBound}}–{{.AlbumMaxBound}}</div>
+            </div>
+
+            <!-- Members -->
+            <div class="range-box">
+                <strong>Number of Members</strong><br>
+                <label><input type="checkbox" name="members" value="1" {{if has .MembersSelected "1" }}checked{{end}}>
+                    1</label>
+                <label><input type="checkbox" name="members" value="2" {{if has .MembersSelected "2" }}checked{{end}}>
+                    2</label>
+                <label><input type="checkbox" name="members" value="3" {{if has .MembersSelected "3" }}checked{{end}}>
+                    3</label>
+                <label><input type="checkbox" name="members" value="4" {{if has .MembersSelected "4" }}checked{{end}}>
+                    4</label>
+                <label><input type="checkbox" name="members" value="5" {{if has .MembersSelected "5" }}checked{{end}}>
+                    5</label>
+                <label><input type="checkbox" name="members" value="6" {{if has .MembersSelected "6" }}checked{{end}}>
+                    6</label>
+            </div>
+
+            <!-- Locations -->
+            <div class="range-box">
+                <details class="loc-details" {{if .LocationsSelected}}open{{end}}>
+                    <summary class="loc-summary">
+                        <span>Locations</span>
+                        <span class="arrow" aria-hidden="true"></span>
+                    </summary>
+                    <div style="margin-top:10px;">
+                        <label for="loc" style="display:block; font-size:13px; opacity:.85;">Exact location
+                            (optional)</label>
+                        <input type="text" id="loc" name="loc" value="{{.LocQuery}}"
+                            placeholder="e.g., Seattle, Washington, USA" class="filter-text">
+                    </div>
+                    <div class="loc-list">
+                        {{range .AllLocations}}
+                        <label class="loc-item">
+                            <input type="checkbox" name="location" value="{{.Value}}" {{if has $.LocationsSelected
+                                .Value}}checked{{end}}>
+                            {{.Label}}
+                        </label>
+                        {{end}}
+                    </div>
+                </details>
+            </div>
+
+        </div>
+
+        <div style="margin-top:16px; display:flex; gap:12px; justify-content:center;">
+            <button type="submit" style="padding:10px 16px;">Apply Filters</button>
+            <a href="/"
+                style="padding:10px 16px; background:#3a3a3a; border-radius:6px; color:#fff; text-decoration:none; display:inline-block;">Reset</a>
+        </div>
+    </form>
+
+    <ul>
+        {{range .Artists}}
+        <li>
+            <a href="/artist?id={{.ID}}&return={{qesc $.RawQuery}}">
+                <img src="{{.Image}}" alt="{{.Name}}">
+                <p>{{.Name}}</p>
+            </a>
+        </li>
+        {{else}}
+        <li class="no-results" style="text-align:center; list-style:none; width:100%;">
+            No artists found.
+        </li>
+        {{end}}
+    </ul>
+
+    <script>
+        let selectedIndex = -1;
+
+        async function fetchSuggestions(query) {
+            const box = document.getElementById('suggestions');
+            if (!query || query.length < 1) {
+                box.style.display = 'none';
+                box.innerHTML = '';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/search?q=' + encodeURIComponent(query));
+                const data = await res.json();
+
+                box.innerHTML = '';
+                selectedIndex = -1;
+
+                if (!data || data.length === 0) {
+                    box.style.display = 'none';
+                    return;
+                }
+
+                data.forEach((item, idx) => {
+                    const li = document.createElement('li');
+                    li.textContent = item.label;
+                    li.style.cssText = 'padding:8px 12px; cursor:pointer; color:#e0e0e0; font-size:14px;';
+                    li.addEventListener('mouseenter', () => {
+                        clearHighlight();
+                        selectedIndex = idx;
+                        li.style.backgroundColor = '#3498db';
+                    });
+                    li.addEventListener('mouseleave', () => {
+                        li.style.backgroundColor = '';
+                    });
+                    li.addEventListener('click', () => {
+                        window.location.href = '/artist?id=' + item.id;
+                    });
+                    box.appendChild(li);
+                });
+
+                box.style.display = 'block';
+            } catch (e) {
+                box.style.display = 'none';
+            }
+        }
+
+        function clearHighlight() {
+            const items = document.querySelectorAll('#suggestions li');
+            items.forEach(li => li.style.backgroundColor = '');
+        }
+
+        function handleKey(e) {
+            const box = document.getElementById('suggestions');
+            const items = box.querySelectorAll('li');
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                clearHighlight();
+                selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                if (items[selectedIndex]) items[selectedIndex].style.backgroundColor = '#3498db';
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                clearHighlight();
+                selectedIndex = Math.max(selectedIndex - 1, 0);
+                if (items[selectedIndex]) items[selectedIndex].style.backgroundColor = '#3498db';
+            } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                e.preventDefault();
+                if (items[selectedIndex]) items[selectedIndex].click();
+            } else if (e.key === 'Escape') {
+                box.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('click', function (e) {
+            const box = document.getElementById('suggestions');
+            if (!box.contains(e.target) && e.target.id !== 'q') {
+                box.style.display = 'none';
+            }
+        });
+    </script>
+
+</body>
+
+</html>
