@@ -199,17 +199,3 @@ A: textContent treats the value as plain text, never as HTML — so nothing
 coming from the API can inject markup into my page. Safer.
 
 ---
-
-## 7. Honest answers if you don't know something
-
-It's okay to not know everything. Good honest answers:
-
-- "I'm not sure about that exact detail — but let me show you where it is
-  in the code and we can look together."
-- "I didn't implement that because the subject didn't require it, but I
-  understand the idea: ..."
-
-Never invent an answer. Auditors respect honesty + willingness to look at
-the code far more than fake confidence.
-
----
