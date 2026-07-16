@@ -75,6 +75,6 @@ Log in with your Reboot01 credentials (username or email + password).
 
 The profile is hosted on GitHub Pages:
 
-**<https://manar-13.github.io/graphql/>**
+**<https://manar-13.github.io/edu01-projects/js-projects/graphql/>**
 
 Log in with your own Reboot01 credentials to see your profile.
